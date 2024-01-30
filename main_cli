@@ -1,0 +1,124 @@
+import questionary
+from habit import Habit
+from analyse import show_all_habit, get_habit_with_periodicity, get_longest_streak
+from db import get_db
+
+# PROGRAM STARTS AND INTRO MESSAGE INTRODUCES THE APP, Greets User.
+print("""
+*** Welcome! ***
+""")
+
+# CLI interface
+def cli():
+    global analyse_choice
+    db = get_db()
+
+    # Check if the user wants to start
+    if not questionary.confirm("Do you want to start?").ask():
+        print("Goodbye!")
+        return
+
+    # Get user name
+    user_name = questionary.text("Please select your user name?").ask()
+
+    habit_name = questionary.text("What is the name of your habit?").ask()
+
+    choice = questionary.select(
+        "What do you want to do?",
+        choices=[
+            "Add Habit",
+            "Track Habit",
+            "Remove Habit",
+            "Analyse",
+            "Change Periodicity",
+            "Completed",
+            "Exit"]
+    ).ask()
+
+    if choice == "Add Habit":
+        questionary.text("What is the name of your habit?",
+                         validate=lambda text: True if len(text) > 0 else "Please enter a name").ask()
+        habit_periodicity = questionary.select("Which timeframe do you want to select, daily, weekly or monthly?",
+                                               choices=["daily", "weekly", "monthly"]).ask()
+
+        # Here you can create a new Habit object and add it to the database
+
+    elif choice == "Track Habit":
+        habit_name = questionary.text("Which habit do you want to log?").ask()
+        counter = Habit(db, habit_name, "no description")
+        counter.add_event(db)
+
+        analyse_choice = questionary.select("Which habit you want to analyse",
+                                            choices=["Analyse All Tracked Habits",
+                                                     "Analyse Habit With Same Period",
+                                                     "Analyse Your Longest Streak",
+                                                     "Analyse Your Habit logs"]).ask()
+
+        # Updates tracked_data with the latest tracking information
+        tracked_data.setdefault(habit_name, {})[datetime.now().strftime("%Y-%m-%d")] = True
+
+        # Save tracked data to JSON file for later analysis.
+        save_data_to_json(tracked_data)
+
+        analyse_choice = questionary.select("Which habit you want to analyse",
+                                            choices=["Analyse All Tracked Habits",
+                                                     "Analyse Habit With Same Period",
+                                                     "Analyse Your Longest Streak",
+                                                     "Analyse Your Habit logs"]).ask()
+
+    elif choice == "Remove Habit":
+        try:
+            habit_name = get.habits_from_db()  # Fix the typo here, it should be get_db instead of get
+        except ValueError:
+            print("\nOops! No habit found in database: Please add a habit first.\n")
+        else:
+            habit = Habit(habit_name)
+            if questionary.confirm(f"Do you really want to remove habit {habit_name}?").ask():
+                habit.remove(db)
+            else:
+                print("\nNo problem! We all get confused sometimes :)\n")
+
+    elif choice == "Analyse":
+        if analyse_choice == "Analyse All Tracked Habits":
+            show_all_habit(db)
+
+        elif analyse_choice == "Analyse Habit With Same Period":
+            habit_periodicity = questionary.select("Choose periodicity", choices=["Daily", "Weekly", "Monthly"]).ask()
+
+            if habit_periodicity == "Daily":
+                print("Your Daily Habits:-")
+                get_habit_with_periodicity(db, period="daily")
+            elif habit_periodicity == "Weekly":
+                print("Your Weekly Habits:-")
+                get_habit_with_periodicity(db, period="weekly")
+            elif habit_periodicity == "Monthly":
+                print("Your Monthly Habits:-")
+                get_habit_with_periodicity(db, period="monthly")
+
+        elif analyse_choice == "Analyse Your Longest Streak":
+            long = questionary.select("Choose one option", choices=[
+                "Longest Streak of Specific Habit",
+                "Longest Streak of All Current Habits"]).ask()
+
+            if long == "Longest Streak of Specific Habit":
+                lon_streak = questionary.text(
+                    "Enter the habit for which you want to see the longest streak",
+                    validate=lambda text: True if len(text) > 0 else "Please enter a value").ask()
+                get_longest_streak(db, lon_streak)
+            else:
+                get_longest_streak_all(db)
+
+    elif choice == "Completed":
+        try:
+            habit_name = get.habits_from_db()  # Fix the typo here, it should be get_db instead of get
+        except ValueError:
+            print("\nNo habit defined; please create a new habit!\n")
+        else:
+            habit = Habit(habit_name)
+            habit.mark_as_completed(db)
+
+    elif choice == "Exit":
+        print("\nSee you soon! Keep up the good work!")
+
+if __name__ == "__main__":
+    cli()
