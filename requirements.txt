@@ -1,0 +1,23 @@
+Prerequisites:
+Make sure you have Python installed on your system.
+pytest
+self~=2020.12.3
+
+Instructions:
+Clone or Download the Code:
+Clone the repository or download the provided Python files (main.py, habit.py, db.py, etc.) to your local machine.
+Install Required Libraries:
+
+Ensure that you have the questionary library installed: questionary~=2.0.1
+You can install it using:
+Copy code or pip install questionary
+
+
+Run the Main Program:
+Execute the main.py script to start the habit tracker application:
+to run: python main.py
+
+Interact with the Application, follow the prompts to add habits, track habits, and analyze habits.
+Input your choices.
+
+Choose the "Exit" option when you are done, to exit the program.
